@@ -1,0 +1,97 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.46
+    ports:
+      - "16686:16686"
+      - "6831:6831/udp"
+      - "4317:4317" # OTLP gRPC endpoint
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/authdb
+      - JWT_SECRET=supersecret_auth
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - jaeger
+
+  user-service:
+    build: ./user-service
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/userdb
+      - JWT_SECRET=supersecret_auth
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    ports:
+      - "8002:8000"
+    depends_on:
+      - postgres
+      - auth-service
+      - jaeger
+
+  catalog-service:
+    build: ./catalog-service
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/catalogdb
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    ports:
+      - "8003:8000"
+    depends_on:
+      - postgres
+      - jaeger
+
+  cart-service:
+    build: ./cart-service
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/cartdb
+      - REDIS_HOST=redis
+      - RABBIT_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    ports:
+      - "8004:8000"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - jaeger
+
+  notification-service:
+    build: ./notification-service
+    environment:
+      - RABBIT_HOST=rabbitmq
+      - JWT_SECRET=supersecret_auth
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+    depends_on:
+      - rabbitmq
+      - jaeger
+
+volumes:
+  pgdata:
