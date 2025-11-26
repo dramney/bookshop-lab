@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from .db import Base, engine, SessionLocal
 from .models import Book
+from fastapi.middleware.cors import CORSMiddleware
 from .schemas import BookIn
 from sqlalchemy.orm import Session
 import os
@@ -13,6 +14,13 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 app = FastAPI(title="catalog-service")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Порт React застосунку
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "catalog-service"}))
 otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 if otlp_endpoint:

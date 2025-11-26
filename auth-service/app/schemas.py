@@ -12,3 +12,4 @@ class LoginIn(BaseModel):
 
 class TokenOut(BaseModel):
     access_token: str
+    user_id: int  # <--- Додаємо це поле

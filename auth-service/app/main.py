@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
 from .db import Base, engine, SessionLocal
 from .models import User
 from .schemas import RegisterIn, LoginIn, TokenOut
@@ -15,7 +16,13 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 app = FastAPI(title="auth-service")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Порт React застосунку
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "auth-service"}))
 otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 if otlp_endpoint:
@@ -26,7 +33,7 @@ trace.set_tracer_provider(provider)
 FastAPIInstrumentor().instrument_app(app)
 
 Base.metadata.create_all(bind=engine)
-r = redis.Redis(host="cart-db", port=6379, decode_responses=True)
+r = redis.Redis(host="redis", port=6379, decode_responses=True)
 
 
 def get_db():
@@ -66,4 +73,4 @@ def login(data: LoginIn, db: Session = Depends(get_db)):
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(401, "Invalid credentials")
     token = create_access_token(user.username, user.role)
-    return {"access_token": token}
+    return {"access_token": token, "user_id": user.id}

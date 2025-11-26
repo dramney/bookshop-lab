@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os, redis
+from fastapi.middleware.cors import CORSMiddleware
 from .events import publish_event
 from .db import Base, engine, SessionLocal
 from sqlalchemy import Column, Integer, String
@@ -25,6 +26,13 @@ class CartItem(Base):
     quantity = Column(Integer)
 
 app = FastAPI(title="cart-service")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Порт React застосунку
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 r = redis.Redis(host=REDIS_HOST, port=6379, db=0, decode_responses=True)

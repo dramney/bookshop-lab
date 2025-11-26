@@ -3,6 +3,7 @@ from .db import Base, engine, SessionLocal
 from .models import Profile
 import os
 from jose import jwt
+from fastapi.middleware.cors import CORSMiddleware
 
 # OTel
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -12,6 +13,13 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
 app = FastAPI(title="user-service")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Порт React застосунку
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 provider = TracerProvider(resource=Resource.create({SERVICE_NAME: "user-service"}))
 otlp_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 if otlp_endpoint:
