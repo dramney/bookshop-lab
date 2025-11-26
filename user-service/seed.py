@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Base, Profile
 from passlib.hash import bcrypt
 
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@user-db:5432/users_db"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@postgres:5432/userdb"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 Base.metadata.create_all(bind=engine)

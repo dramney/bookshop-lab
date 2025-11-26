@@ -10,4 +10,3 @@ opentelemetry-sdk
 opentelemetry-instrumentation-fastapi
 opentelemetry-exporter-otlp-proto-grpc
 passlib[bcrypt]
-psycopg2

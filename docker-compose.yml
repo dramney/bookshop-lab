@@ -9,6 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis:7
@@ -33,6 +34,7 @@ services:
 
   auth-service:
     build: ./auth-service
+    restart: on-failure
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/authdb
       - JWT_SECRET=supersecret_auth
@@ -46,6 +48,7 @@ services:
 
   user-service:
     build: ./user-service
+    restart: on-failure
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/userdb
       - JWT_SECRET=supersecret_auth
@@ -59,6 +62,7 @@ services:
 
   catalog-service:
     build: ./catalog-service
+    restart: on-failure
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/catalogdb
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
@@ -70,6 +74,7 @@ services:
 
   cart-service:
     build: ./cart-service
+    restart: on-failure
     environment:
       - DATABASE_URL=postgresql+psycopg2://postgres:postgres@postgres:5432/cartdb
       - REDIS_HOST=redis
@@ -85,6 +90,7 @@ services:
 
   notification-service:
     build: ./notification-service
+    restart: on-failure
     environment:
       - RABBIT_HOST=rabbitmq
       - JWT_SECRET=supersecret_auth

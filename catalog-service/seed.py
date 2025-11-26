@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Base, Book
 
 # Підключення до PostgreSQL (з docker-compose)
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@catalog-db:5432/catalog_db"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:postgres@postgres:5432/catalogdb"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine)
 
